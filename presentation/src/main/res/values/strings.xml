@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">presentation</string>
+    <string name="info_contact_fragment">info_contact_fragment</string>
+    <string name="contact_temperament">contact_temperament</string>
+    <string name="contact_educationPeriod">contact_educationPeriod</string>
+    <string name="contact_name">contact_name</string>
+    <string name="contact_phone">contact_phone</string>
+    <string name="contact_height">contact_height</string>
+    <string name="network_error">Нет подключения к сети</string>
+</resources>

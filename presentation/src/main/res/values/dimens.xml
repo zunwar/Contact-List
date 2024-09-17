@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="counter">60sp</dimen>
+    <dimen name="bigText">36sp</dimen>
+    <dimen name="middleText">18sp</dimen>
+    <dimen name="smallText">13sp</dimen>
+    <dimen name="tinyText">10sp</dimen>
+</resources>

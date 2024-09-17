@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Contacts List</string>
+    <string name="search_title">search</string>
+    <string name="search_hint">Имя или номер телефона…</string>
+</resources>
