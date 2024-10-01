@@ -1,5 +1,6 @@
 package com.data.local.database
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -19,9 +20,12 @@ interface ContactDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(vararg contactEntity: ContactEntity)
 
-    @Query("SELECT * FROM ContactEntity WHERE name LIKE '%' || :searchQuery || '%' OR phone LIKE '%' || :searchQuery || '%'")
-    fun getContactsWithSearch(
+    @Query("SELECT * FROM ContactEntity WHERE name LIKE '%' || :searchQuery || '%' OR phone LIKE '%' || :searchQuery || '%' ORDER BY name ASC")
+    fun getContactsWithSearchPagingSource(
         searchQuery: String
-    ): Flow<List<ContactEntity>>
+    ): PagingSource<Int,ContactEntity>
+
+    @Query("SELECT COUNT(*) FROM ContactEntity")
+    fun isContactDatabaseContainsData(): Boolean
 
 }

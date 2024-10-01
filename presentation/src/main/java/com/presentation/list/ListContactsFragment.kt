@@ -6,15 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.domain.entities.DownloadStatus
 import com.domain.entities.ShowDataStatus
 import com.google.android.material.snackbar.Snackbar
 import com.presentation.R
 import com.presentation.databinding.FragmentListContactsBinding
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -34,7 +35,6 @@ class ListContactsFragment : Fragment(R.layout.fragment_list_contacts) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         loadContacts()
         loadingProcess()
         refreshSwipe()
@@ -43,36 +43,58 @@ class ListContactsFragment : Fragment(R.layout.fragment_list_contacts) {
     private fun refreshSwipe() {
         binding.swipeLayout.setOnRefreshListener {
             viewModel.refreshList()
+            binding.cloudImage.visibility = View.GONE
+            binding.swipeLayout.visibility = View.GONE
+            binding.progressBar.visibility = View.VISIBLE
             binding.swipeLayout.isRefreshing = false
         }
     }
 
     private fun loadingProcess() {
         binding.swipeLayout.visibility = View.GONE
-        viewModel.getShowDataStatus().observe(viewLifecycleOwner) { showDataStatus ->
-            @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
-            when (showDataStatus) {
-                ShowDataStatus.Show -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.swipeLayout.visibility = View.VISIBLE
-                }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.getShowDataStatus().collectLatest { showDataStatus ->
+                    when (showDataStatus) {
+                        ShowDataStatus.Show -> {
+                            binding.progressBar.visibility = View.GONE
+                            binding.cloudImage.visibility = View.GONE
+                            binding.swipeLayout.visibility = View.VISIBLE
+                        }
 
-                ShowDataStatus.Error -> {
-                    binding.progressBar.visibility = View.GONE
-                    Snackbar.make(
-                        requireContext(),
-                        binding.root,
-                        getString(R.string.network_error),
-                        Snackbar.LENGTH_LONG
-                    )
-                        .show()
+                        ShowDataStatus.NetworkErrorEmptyDatabase -> {
+                            binding.progressBar.visibility = View.GONE
+                            binding.swipeLayout.visibility = View.VISIBLE
+                            binding.cloudImage.visibility = View.VISIBLE
+                            Snackbar.make(
+                                requireContext(),
+                                binding.root,
+                                getString(R.string.network_error),
+                                Snackbar.LENGTH_LONG
+                            )
+                                .show()
+                        }
+
+                        ShowDataStatus.NetworkError -> {
+                            binding.swipeLayout.visibility = View.VISIBLE
+                            binding.progressBar.visibility = View.GONE
+                            binding.cloudImage.visibility = View.GONE
+                            Snackbar.make(
+                                requireContext(),
+                                binding.root,
+                                getString(R.string.network_error),
+                                Snackbar.LENGTH_LONG
+                            )
+                                .show()
+                        }
+                    }
                 }
             }
         }
     }
 
     private fun loadContacts() {
-        binding.recyclerView.adapter = ContactAdapter(
+        binding.recyclerView.adapter = PagingAdapter(
             onItemClicked = {
                 val action =
                     ListContactsFragmentDirections.actionListContactsFragmentToInfoContactFragment(
@@ -85,10 +107,13 @@ class ListContactsFragment : Fragment(R.layout.fragment_list_contacts) {
     }
 
     private fun subscribeRecycler() {
-        viewModel.getContactsList()
-            .observe(viewLifecycleOwner) { list ->
-                (binding.recyclerView.adapter as ContactAdapter).submitList(list)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.getContactsList().collectLatest { pagerData ->
+                    (binding.recyclerView.adapter as PagingAdapter).submitData(pagerData)
+                }
             }
+        }
     }
 
 }

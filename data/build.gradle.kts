@@ -45,9 +45,9 @@ dependencies {
     implementation(libs.retrofit2.converter.moshi)
     implementation(libs.moshi)
     implementation(libs.hilt)
-    implementation(libs.androidx.work)
-    implementation(libs.androidx.datastore)
     ksp(libs.hilt.compiler)
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.room.paging)
 
     testImplementation(libs.junit)
 

@@ -37,5 +37,8 @@ dependencies {
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
 
+    //without Android dependencies
+    implementation(libs.androidx.paging.common)
+
     testImplementation(libs.junit)
 }
